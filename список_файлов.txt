@@ -1,0 +1,7 @@
+Hello_World.txt
+server.py
+данные.txt
+логи.txt
+русский_файл.txt
+список_файлов.txt
+тест_кодировки.txt
