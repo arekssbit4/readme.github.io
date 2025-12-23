@@ -1,0 +1,2081 @@
+import http.server
+import socketserver
+import os
+import json
+
+PORT = 8888
+FOLDER = "D:\\code"
+os.chdir(FOLDER)
+
+class CMDHandler(http.server.BaseHTTPRequestHandler):
+    
+    def do_GET(self):
+        path = self.path.strip()
+        
+        # /list - список файлов
+        if path == "/list":
+            files = []
+            for f in os.listdir("."):
+                if os.path.isfile(f):
+                    size = os.path.getsize(f)
+                    files.append({"name": f, "size": size})
+            
+            self.send_json(files)
+        
+        # /get/имя_файла - прочитать файл
+        elif path.startswith("/get/"):
+            filename = path[5:]  # убираем /get/
+            if not filename:
+                self.send_error(400, "Нужно указать имя файла: /get/файл.txt")
+                return
+            
+            if not os.path.exists(filename):
+                self.send_error(404, f"Файл '{filename}' не найден")
+                return
+            
+            try:
+                with open(filename, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                
+                self.send_response(200)
+                self.send_header('Content-type', 'text/plain; charset=utf-8')
+                self.end_headers()
+                self.wfile.write(content.encode('utf-8'))
+            except:
+                self.send_error(500, "Ошибка чтения файла")
+        
+        # /download/имя_файла - скачать файл
+        elif path.startswith("/download/"):
+            filename = path[10:]  # убираем /download/
+            if not filename:
+                self.send_error(400, "Нужно указать имя файла: /download/файл.txt")
+                return
+            
+            if not os.path.exists(filename):
+                self.send_error(404, f"Файл '{filename}' не найден")
+                return
+            
+            try:
+                with open(filename, 'rb') as f:
+                    content = f.read()
+                
+                self.send_response(200)
+                self.send_header('Content-type', 'application/octet-stream')
+                self.send_header('Content-Disposition', f'attachment; filename="{filename}"')
+                self.send_header('Content-Length', str(len(content)))
+                self.end_headers()
+                self.wfile.write(content)
+            except:
+                self.send_error(500, "Ошибка загрузки файла")
+        
+        # / - справка
+        else:
+            self.send_response(200)
+            self.send_header('Content-type', 'text/plain; charset=utf-8')
+            self.end_headers()
+            help_text = """📁 Файловый сервер
+
+Используй эти команды из CMD:
+
+1. Получить список файлов:
+   curl http://IP:8888/list
+
+2. Прочитать файл (показать текст в консоли):
+   curl http://IP:8888/get/имя_файла.txt
+
+3. Скачать файл на компьютер:
+   curl http://IP:8888/download/имя_файла.txt -o файл.txt
+
+Примеры:
+   curl http://192.168.1.247:8888/list
+   curl http://192.168.1.247:8888/get/test.txt
+   curl http://192.168.1.247:8888/download/document.txt -o doc.txt
+"""
+            self.wfile.write(help_text.encode('utf-8'))
+    
+    def send_json(self, data):
+        self.send_response(200)
+        self.send_header('Content-type', 'application/json')
+        self.end_headers()
+        self.wfile.write(json.dumps(data, indent=2, ensure_ascii=False).encode('utf-8'))
+    
+    def log_message(self, format, *args):
+        print(f"[{self.address_string()}] {format % args}")
+
+# Запуск сервера
+print("=" * 50)
+print("📁 Файловый сервер для CMD")
+print("=" * 50)
+print(f"Папка: {os.getcwd()}")
+print(f"Сервер: http://192.168.1.247:{PORT}")
+print("\nКоманды для CMD:")
+print("  curl http://IP:8888/list")
+print("  curl http://IP:8888/get/файл.txt")
+print("  curl http://IP:8888/download/файл.txt -o файл.txt")
+print("=" * 50)
+
+try:
+    with socketserver.TCPServer(("", PORT), CMDHandler) as httpd:
+        print("✅ Сервер запущен. Ctrl+C для остановки")
+        httpd.serve_forever()
+except KeyboardInterrupt:
+    print("\n❌ Сервер остановлен")
+    import http.server
+import socketserver
+import os
+import json
+
+PORT = 8888
+FOLDER = "D:\\code"
+os.chdir(FOLDER)
+
+class CMDHandler(http.server.BaseHTTPRequestHandler):
+    
+    def do_GET(self):
+        path = self.path.strip()
+        
+        # /list - список файлов
+        if path == "/list":
+            files = []
+            for f in os.listdir("."):
+                if os.path.isfile(f):
+                    size = os.path.getsize(f)
+                    files.append({"name": f, "size": size})
+            
+            self.send_json(files)
+        
+        # /get/имя_файла - прочитать файл
+        elif path.startswith("/get/"):
+            filename = path[5:]  # убираем /get/
+            if not filename:
+                self.send_error(400, "Нужно указать имя файла: /get/файл.txt")
+                return
+            
+            if not os.path.exists(filename):
+                self.send_error(404, f"Файл '{filename}' не найден")
+                return
+            
+            try:
+                with open(filename, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                
+                self.send_response(200)
+                self.send_header('Content-type', 'text/plain; charset=utf-8')
+                self.end_headers()
+                self.wfile.write(content.encode('utf-8'))
+            except:
+                self.send_error(500, "Ошибка чтения файла")
+        
+        # /download/имя_файла - скачать файл
+        elif path.startswith("/download/"):
+            filename = path[10:]  # убираем /download/
+            if not filename:
+                self.send_error(400, "Нужно указать имя файла: /download/файл.txt")
+                return
+            
+            if not os.path.exists(filename):
+                self.send_error(404, f"Файл '{filename}' не найден")
+                return
+            
+            try:
+                with open(filename, 'rb') as f:
+                    content = f.read()
+                
+                self.send_response(200)
+                self.send_header('Content-type', 'application/octet-stream')
+                self.send_header('Content-Disposition', f'attachment; filename="{filename}"')
+                self.send_header('Content-Length', str(len(content)))
+                self.end_headers()
+                self.wfile.write(content)
+            except:
+                self.send_error(500, "Ошибка загрузки файла")
+        
+        # / - справка
+        else:
+            self.send_response(200)
+            self.send_header('Content-type', 'text/plain; charset=utf-8')
+            self.end_headers()
+            help_text = """📁 Файловый сервер
+
+Используй эти команды из CMD:
+
+1. Получить список файлов:
+   curl http://IP:8888/list
+
+2. Прочитать файл (показать текст в консоли):
+   curl http://IP:8888/get/имя_файла.txt
+
+3. Скачать файл на компьютер:
+   curl http://IP:8888/download/имя_файла.txt -o файл.txt
+
+Примеры:
+   curl http://192.168.1.247:8888/list
+   curl http://192.168.1.247:8888/get/test.txt
+   curl http://192.168.1.247:8888/download/document.txt -o doc.txt
+"""
+            self.wfile.write(help_text.encode('utf-8'))
+    
+    def send_json(self, data):
+        self.send_response(200)
+        self.send_header('Content-type', 'application/json')
+        self.end_headers()
+        self.wfile.write(json.dumps(data, indent=2, ensure_ascii=False).encode('utf-8'))
+    
+    def log_message(self, format, *args):
+        print(f"[{self.address_string()}] {format % args}")
+
+# Запуск сервера
+print("=" * 50)
+print("📁 Файловый сервер для CMD")
+print("=" * 50)
+print(f"Папка: {os.getcwd()}")
+print(f"Сервер: http://192.168.1.247:{PORT}")
+print("\nКоманды для CMD:")
+print("  curl http://IP:8888/list")
+print("  curl http://IP:8888/get/файл.txt")
+print("  curl http://IP:8888/download/файл.txt -o файл.txt")
+print("=" * 50)
+
+try:
+    with socketserver.TCPServer(("", PORT), CMDHandler) as httpd:
+        print("✅ Сервер запущен. Ctrl+C для остановки")
+        httpd.serve_forever()
+except KeyboardInterrupt:
+    print("\n❌ Сервер остановлен")
+    import http.server
+import socketserver
+import os
+import json
+
+PORT = 8888
+FOLDER = "D:\\code"
+os.chdir(FOLDER)
+
+class CMDHandler(http.server.BaseHTTPRequestHandler):
+    
+    def do_GET(self):
+        path = self.path.strip()
+        
+        # /list - список файлов
+        if path == "/list":
+            files = []
+            for f in os.listdir("."):
+                if os.path.isfile(f):
+                    size = os.path.getsize(f)
+                    files.append({"name": f, "size": size})
+            
+            self.send_json(files)
+        
+        # /get/имя_файла - прочитать файл
+        elif path.startswith("/get/"):
+            filename = path[5:]  # убираем /get/
+            if not filename:
+                self.send_error(400, "Нужно указать имя файла: /get/файл.txt")
+                return
+            
+            if not os.path.exists(filename):
+                self.send_error(404, f"Файл '{filename}' не найден")
+                return
+            
+            try:
+                with open(filename, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                
+                self.send_response(200)
+                self.send_header('Content-type', 'text/plain; charset=utf-8')
+                self.end_headers()
+                self.wfile.write(content.encode('utf-8'))
+            except:
+                self.send_error(500, "Ошибка чтения файла")
+        
+        # /download/имя_файла - скачать файл
+        elif path.startswith("/download/"):
+            filename = path[10:]  # убираем /download/
+            if not filename:
+                self.send_error(400, "Нужно указать имя файла: /download/файл.txt")
+                return
+            
+            if not os.path.exists(filename):
+                self.send_error(404, f"Файл '{filename}' не найден")
+                return
+            
+            try:
+                with open(filename, 'rb') as f:
+                    content = f.read()
+                
+                self.send_response(200)
+                self.send_header('Content-type', 'application/octet-stream')
+                self.send_header('Content-Disposition', f'attachment; filename="{filename}"')
+                self.send_header('Content-Length', str(len(content)))
+                self.end_headers()
+                self.wfile.write(content)
+            except:
+                self.send_error(500, "Ошибка загрузки файла")
+        
+        # / - справка
+        else:
+            self.send_response(200)
+            self.send_header('Content-type', 'text/plain; charset=utf-8')
+            self.end_headers()
+            help_text = """📁 Файловый сервер
+
+Используй эти команды из CMD:
+
+1. Получить список файлов:
+   curl http://IP:8888/list
+
+2. Прочитать файл (показать текст в консоли):
+   curl http://IP:8888/get/имя_файла.txt
+
+3. Скачать файл на компьютер:
+   curl http://IP:8888/download/имя_файла.txt -o файл.txt
+
+Примеры:
+   curl http://192.168.1.247:8888/list
+   curl http://192.168.1.247:8888/get/test.txt
+   curl http://192.168.1.247:8888/download/document.txt -o doc.txt
+"""
+            self.wfile.write(help_text.encode('utf-8'))
+    
+    def send_json(self, data):
+        self.send_response(200)
+        self.send_header('Content-type', 'application/json')
+        self.end_headers()
+        self.wfile.write(json.dumps(data, indent=2, ensure_ascii=False).encode('utf-8'))
+    
+    def log_message(self, format, *args):
+        print(f"[{self.address_string()}] {format % args}")
+
+# Запуск сервера
+print("=" * 50)
+print("📁 Файловый сервер для CMD")
+print("=" * 50)
+print(f"Папка: {os.getcwd()}")
+print(f"Сервер: http://192.168.1.247:{PORT}")
+print("\nКоманды для CMD:")
+print("  curl http://IP:8888/list")
+print("  curl http://IP:8888/get/файл.txt")
+print("  curl http://IP:8888/download/файл.txt -o файл.txt")
+print("=" * 50)
+
+try:
+    with socketserver.TCPServer(("", PORT), CMDHandler) as httpd:
+        print("✅ Сервер запущен. Ctrl+C для остановки")
+        httpd.serve_forever()
+except KeyboardInterrupt:
+    print("\n❌ Сервер остановлен")
+    import http.server
+import socketserver
+import os
+import json
+
+PORT = 8888
+FOLDER = "D:\\code"
+os.chdir(FOLDER)
+
+class CMDHandler(http.server.BaseHTTPRequestHandler):
+    
+    def do_GET(self):
+        path = self.path.strip()
+        
+        # /list - список файлов
+        if path == "/list":
+            files = []
+            for f in os.listdir("."):
+                if os.path.isfile(f):
+                    size = os.path.getsize(f)
+                    files.append({"name": f, "size": size})
+            
+            self.send_json(files)
+        
+        # /get/имя_файла - прочитать файл
+        elif path.startswith("/get/"):
+            filename = path[5:]  # убираем /get/
+            if not filename:
+                self.send_error(400, "Нужно указать имя файла: /get/файл.txt")
+                return
+            
+            if not os.path.exists(filename):
+                self.send_error(404, f"Файл '{filename}' не найден")
+                return
+            
+            try:
+                with open(filename, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                
+                self.send_response(200)
+                self.send_header('Content-type', 'text/plain; charset=utf-8')
+                self.end_headers()
+                self.wfile.write(content.encode('utf-8'))
+            except:
+                self.send_error(500, "Ошибка чтения файла")
+        
+        # /download/имя_файла - скачать файл
+        elif path.startswith("/download/"):
+            filename = path[10:]  # убираем /download/
+            if not filename:
+                self.send_error(400, "Нужно указать имя файла: /download/файл.txt")
+                return
+            
+            if not os.path.exists(filename):
+                self.send_error(404, f"Файл '{filename}' не найден")
+                return
+            
+            try:
+                with open(filename, 'rb') as f:
+                    content = f.read()
+                
+                self.send_response(200)
+                self.send_header('Content-type', 'application/octet-stream')
+                self.send_header('Content-Disposition', f'attachment; filename="{filename}"')
+                self.send_header('Content-Length', str(len(content)))
+                self.end_headers()
+                self.wfile.write(content)
+            except:
+                self.send_error(500, "Ошибка загрузки файла")
+        
+        # / - справка
+        else:
+            self.send_response(200)
+            self.send_header('Content-type', 'text/plain; charset=utf-8')
+            self.end_headers()
+            help_text = """📁 Файловый сервер
+
+Используй эти команды из CMD:
+
+1. Получить список файлов:
+   curl http://IP:8888/list
+
+2. Прочитать файл (показать текст в консоли):
+   curl http://IP:8888/get/имя_файла.txt
+
+3. Скачать файл на компьютер:
+   curl http://IP:8888/download/имя_файла.txt -o файл.txt
+
+Примеры:
+   curl http://192.168.1.247:8888/list
+   curl http://192.168.1.247:8888/get/test.txt
+   curl http://192.168.1.247:8888/download/document.txt -o doc.txt
+"""
+            self.wfile.write(help_text.encode('utf-8'))
+    
+    def send_json(self, data):
+        self.send_response(200)
+        self.send_header('Content-type', 'application/json')
+        self.end_headers()
+        self.wfile.write(json.dumps(data, indent=2, ensure_ascii=False).encode('utf-8'))
+    
+    def log_message(self, format, *args):
+        print(f"[{self.address_string()}] {format % args}")
+
+# Запуск сервера
+print("=" * 50)
+print("📁 Файловый сервер для CMD")
+print("=" * 50)
+print(f"Папка: {os.getcwd()}")
+print(f"Сервер: http://192.168.1.247:{PORT}")
+print("\nКоманды для CMD:")
+print("  curl http://IP:8888/list")
+print("  curl http://IP:8888/get/файл.txt")
+print("  curl http://IP:8888/download/файл.txt -o файл.txt")
+print("=" * 50)
+
+try:
+    with socketserver.TCPServer(("", PORT), CMDHandler) as httpd:
+        print("✅ Сервер запущен. Ctrl+C для остановки")
+        httpd.serve_forever()
+except KeyboardInterrupt:
+    print("\n❌ Сервер остановлен")
+    import http.server
+import socketserver
+import os
+import json
+
+PORT = 8888
+FOLDER = "D:\\code"
+os.chdir(FOLDER)
+
+class CMDHandler(http.server.BaseHTTPRequestHandler):
+    
+    def do_GET(self):
+        path = self.path.strip()
+        
+        # /list - список файлов
+        if path == "/list":
+            files = []
+            for f in os.listdir("."):
+                if os.path.isfile(f):
+                    size = os.path.getsize(f)
+                    files.append({"name": f, "size": size})
+            
+            self.send_json(files)
+        
+        # /get/имя_файла - прочитать файл
+        elif path.startswith("/get/"):
+            filename = path[5:]  # убираем /get/
+            if not filename:
+                self.send_error(400, "Нужно указать имя файла: /get/файл.txt")
+                return
+            
+            if not os.path.exists(filename):
+                self.send_error(404, f"Файл '{filename}' не найден")
+                return
+            
+            try:
+                with open(filename, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                
+                self.send_response(200)
+                self.send_header('Content-type', 'text/plain; charset=utf-8')
+                self.end_headers()
+                self.wfile.write(content.encode('utf-8'))
+            except:
+                self.send_error(500, "Ошибка чтения файла")
+        
+        # /download/имя_файла - скачать файл
+        elif path.startswith("/download/"):
+            filename = path[10:]  # убираем /download/
+            if not filename:
+                self.send_error(400, "Нужно указать имя файла: /download/файл.txt")
+                return
+            
+            if not os.path.exists(filename):
+                self.send_error(404, f"Файл '{filename}' не найден")
+                return
+            
+            try:
+                with open(filename, 'rb') as f:
+                    content = f.read()
+                
+                self.send_response(200)
+                self.send_header('Content-type', 'application/octet-stream')
+                self.send_header('Content-Disposition', f'attachment; filename="{filename}"')
+                self.send_header('Content-Length', str(len(content)))
+                self.end_headers()
+                self.wfile.write(content)
+            except:
+                self.send_error(500, "Ошибка загрузки файла")
+        
+        # / - справка
+        else:
+            self.send_response(200)
+            self.send_header('Content-type', 'text/plain; charset=utf-8')
+            self.end_headers()
+            help_text = """📁 Файловый сервер
+
+Используй эти команды из CMD:
+
+1. Получить список файлов:
+   curl http://IP:8888/list
+
+2. Прочитать файл (показать текст в консоли):
+   curl http://IP:8888/get/имя_файла.txt
+
+3. Скачать файл на компьютер:
+   curl http://IP:8888/download/имя_файла.txt -o файл.txt
+
+Примеры:
+   curl http://192.168.1.247:8888/list
+   curl http://192.168.1.247:8888/get/test.txt
+   curl http://192.168.1.247:8888/download/document.txt -o doc.txt
+"""
+            self.wfile.write(help_text.encode('utf-8'))
+    
+    def send_json(self, data):
+        self.send_response(200)
+        self.send_header('Content-type', 'application/json')
+        self.end_headers()
+        self.wfile.write(json.dumps(data, indent=2, ensure_ascii=False).encode('utf-8'))
+    
+    def log_message(self, format, *args):
+        print(f"[{self.address_string()}] {format % args}")
+
+# Запуск сервера
+print("=" * 50)
+print("📁 Файловый сервер для CMD")
+print("=" * 50)
+print(f"Папка: {os.getcwd()}")
+print(f"Сервер: http://192.168.1.247:{PORT}")
+print("\nКоманды для CMD:")
+print("  curl http://IP:8888/list")
+print("  curl http://IP:8888/get/файл.txt")
+print("  curl http://IP:8888/download/файл.txt -o файл.txt")
+print("=" * 50)
+
+try:
+    with socketserver.TCPServer(("", PORT), CMDHandler) as httpd:
+        print("✅ Сервер запущен. Ctrl+C для остановки")
+        httpd.serve_forever()
+except KeyboardInterrupt:
+    print("\n❌ Сервер остановлен")
+    import http.server
+import socketserver
+import os
+import json
+
+PORT = 8888
+FOLDER = "D:\\code"
+os.chdir(FOLDER)
+
+class CMDHandler(http.server.BaseHTTPRequestHandler):
+    
+    def do_GET(self):
+        path = self.path.strip()
+        
+        # /list - список файлов
+        if path == "/list":
+            files = []
+            for f in os.listdir("."):
+                if os.path.isfile(f):
+                    size = os.path.getsize(f)
+                    files.append({"name": f, "size": size})
+            
+            self.send_json(files)
+        
+        # /get/имя_файла - прочитать файл
+        elif path.startswith("/get/"):
+            filename = path[5:]  # убираем /get/
+            if not filename:
+                self.send_error(400, "Нужно указать имя файла: /get/файл.txt")
+                return
+            
+            if not os.path.exists(filename):
+                self.send_error(404, f"Файл '{filename}' не найден")
+                return
+            
+            try:
+                with open(filename, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                
+                self.send_response(200)
+                self.send_header('Content-type', 'text/plain; charset=utf-8')
+                self.end_headers()
+                self.wfile.write(content.encode('utf-8'))
+            except:
+                self.send_error(500, "Ошибка чтения файла")
+        
+        # /download/имя_файла - скачать файл
+        elif path.startswith("/download/"):
+            filename = path[10:]  # убираем /download/
+            if not filename:
+                self.send_error(400, "Нужно указать имя файла: /download/файл.txt")
+                return
+            
+            if not os.path.exists(filename):
+                self.send_error(404, f"Файл '{filename}' не найден")
+                return
+            
+            try:
+                with open(filename, 'rb') as f:
+                    content = f.read()
+                
+                self.send_response(200)
+                self.send_header('Content-type', 'application/octet-stream')
+                self.send_header('Content-Disposition', f'attachment; filename="{filename}"')
+                self.send_header('Content-Length', str(len(content)))
+                self.end_headers()
+                self.wfile.write(content)
+            except:
+                self.send_error(500, "Ошибка загрузки файла")
+        
+        # / - справка
+        else:
+            self.send_response(200)
+            self.send_header('Content-type', 'text/plain; charset=utf-8')
+            self.end_headers()
+            help_text = """📁 Файловый сервер
+
+Используй эти команды из CMD:
+
+1. Получить список файлов:
+   curl http://IP:8888/list
+
+2. Прочитать файл (показать текст в консоли):
+   curl http://IP:8888/get/имя_файла.txt
+
+3. Скачать файл на компьютер:
+   curl http://IP:8888/download/имя_файла.txt -o файл.txt
+
+Примеры:
+   curl http://192.168.1.247:8888/list
+   curl http://192.168.1.247:8888/get/test.txt
+   curl http://192.168.1.247:8888/download/document.txt -o doc.txt
+"""
+            self.wfile.write(help_text.encode('utf-8'))
+    
+    def send_json(self, data):
+        self.send_response(200)
+        self.send_header('Content-type', 'application/json')
+        self.end_headers()
+        self.wfile.write(json.dumps(data, indent=2, ensure_ascii=False).encode('utf-8'))
+    
+    def log_message(self, format, *args):
+        print(f"[{self.address_string()}] {format % args}")
+
+# Запуск сервера
+print("=" * 50)
+print("📁 Файловый сервер для CMD")
+print("=" * 50)
+print(f"Папка: {os.getcwd()}")
+print(f"Сервер: http://192.168.1.247:{PORT}")
+print("\nКоманды для CMD:")
+print("  curl http://IP:8888/list")
+print("  curl http://IP:8888/get/файл.txt")
+print("  curl http://IP:8888/download/файл.txt -o файл.txt")
+print("=" * 50)
+
+try:
+    with socketserver.TCPServer(("", PORT), CMDHandler) as httpd:
+        print("✅ Сервер запущен. Ctrl+C для остановки")
+        httpd.serve_forever()
+except KeyboardInterrupt:
+    print("\n❌ Сервер остановлен")
+    import http.server
+import socketserver
+import os
+import json
+
+PORT = 8888
+FOLDER = "D:\\code"
+os.chdir(FOLDER)
+
+class CMDHandler(http.server.BaseHTTPRequestHandler):
+    
+    def do_GET(self):
+        path = self.path.strip()
+        
+        # /list - список файлов
+        if path == "/list":
+            files = []
+            for f in os.listdir("."):
+                if os.path.isfile(f):
+                    size = os.path.getsize(f)
+                    files.append({"name": f, "size": size})
+            
+            self.send_json(files)
+        
+        # /get/имя_файла - прочитать файл
+        elif path.startswith("/get/"):
+            filename = path[5:]  # убираем /get/
+            if not filename:
+                self.send_error(400, "Нужно указать имя файла: /get/файл.txt")
+                return
+            
+            if not os.path.exists(filename):
+                self.send_error(404, f"Файл '{filename}' не найден")
+                return
+            
+            try:
+                with open(filename, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                
+                self.send_response(200)
+                self.send_header('Content-type', 'text/plain; charset=utf-8')
+                self.end_headers()
+                self.wfile.write(content.encode('utf-8'))
+            except:
+                self.send_error(500, "Ошибка чтения файла")
+        
+        # /download/имя_файла - скачать файл
+        elif path.startswith("/download/"):
+            filename = path[10:]  # убираем /download/
+            if not filename:
+                self.send_error(400, "Нужно указать имя файла: /download/файл.txt")
+                return
+            
+            if not os.path.exists(filename):
+                self.send_error(404, f"Файл '{filename}' не найден")
+                return
+            
+            try:
+                with open(filename, 'rb') as f:
+                    content = f.read()
+                
+                self.send_response(200)
+                self.send_header('Content-type', 'application/octet-stream')
+                self.send_header('Content-Disposition', f'attachment; filename="{filename}"')
+                self.send_header('Content-Length', str(len(content)))
+                self.end_headers()
+                self.wfile.write(content)
+            except:
+                self.send_error(500, "Ошибка загрузки файла")
+        
+        # / - справка
+        else:
+            self.send_response(200)
+            self.send_header('Content-type', 'text/plain; charset=utf-8')
+            self.end_headers()
+            help_text = """📁 Файловый сервер
+
+Используй эти команды из CMD:
+
+1. Получить список файлов:
+   curl http://IP:8888/list
+
+2. Прочитать файл (показать текст в консоли):
+   curl http://IP:8888/get/имя_файла.txt
+
+3. Скачать файл на компьютер:
+   curl http://IP:8888/download/имя_файла.txt -o файл.txt
+
+Примеры:
+   curl http://192.168.1.247:8888/list
+   curl http://192.168.1.247:8888/get/test.txt
+   curl http://192.168.1.247:8888/download/document.txt -o doc.txt
+"""
+            self.wfile.write(help_text.encode('utf-8'))
+    
+    def send_json(self, data):
+        self.send_response(200)
+        self.send_header('Content-type', 'application/json')
+        self.end_headers()
+        self.wfile.write(json.dumps(data, indent=2, ensure_ascii=False).encode('utf-8'))
+    
+    def log_message(self, format, *args):
+        print(f"[{self.address_string()}] {format % args}")
+
+# Запуск сервера
+print("=" * 50)
+print("📁 Файловый сервер для CMD")
+print("=" * 50)
+print(f"Папка: {os.getcwd()}")
+print(f"Сервер: http://192.168.1.247:{PORT}")
+print("\nКоманды для CMD:")
+print("  curl http://IP:8888/list")
+print("  curl http://IP:8888/get/файл.txt")
+print("  curl http://IP:8888/download/файл.txt -o файл.txt")
+print("=" * 50)
+
+try:
+    with socketserver.TCPServer(("", PORT), CMDHandler) as httpd:
+        print("✅ Сервер запущен. Ctrl+C для остановки")
+        httpd.serve_forever()
+except KeyboardInterrupt:
+    print("\n❌ Сервер остановлен")
+    import http.server
+import socketserver
+import os
+import json
+
+PORT = 8888
+FOLDER = "D:\\code"
+os.chdir(FOLDER)
+
+class CMDHandler(http.server.BaseHTTPRequestHandler):
+    
+    def do_GET(self):
+        path = self.path.strip()
+        
+        # /list - список файлов
+        if path == "/list":
+            files = []
+            for f in os.listdir("."):
+                if os.path.isfile(f):
+                    size = os.path.getsize(f)
+                    files.append({"name": f, "size": size})
+            
+            self.send_json(files)
+        
+        # /get/имя_файла - прочитать файл
+        elif path.startswith("/get/"):
+            filename = path[5:]  # убираем /get/
+            if not filename:
+                self.send_error(400, "Нужно указать имя файла: /get/файл.txt")
+                return
+            
+            if not os.path.exists(filename):
+                self.send_error(404, f"Файл '{filename}' не найден")
+                return
+            
+            try:
+                with open(filename, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                
+                self.send_response(200)
+                self.send_header('Content-type', 'text/plain; charset=utf-8')
+                self.end_headers()
+                self.wfile.write(content.encode('utf-8'))
+            except:
+                self.send_error(500, "Ошибка чтения файла")
+        
+        # /download/имя_файла - скачать файл
+        elif path.startswith("/download/"):
+            filename = path[10:]  # убираем /download/
+            if not filename:
+                self.send_error(400, "Нужно указать имя файла: /download/файл.txt")
+                return
+            
+            if not os.path.exists(filename):
+                self.send_error(404, f"Файл '{filename}' не найден")
+                return
+            
+            try:
+                with open(filename, 'rb') as f:
+                    content = f.read()
+                
+                self.send_response(200)
+                self.send_header('Content-type', 'application/octet-stream')
+                self.send_header('Content-Disposition', f'attachment; filename="{filename}"')
+                self.send_header('Content-Length', str(len(content)))
+                self.end_headers()
+                self.wfile.write(content)
+            except:
+                self.send_error(500, "Ошибка загрузки файла")
+        
+        # / - справка
+        else:
+            self.send_response(200)
+            self.send_header('Content-type', 'text/plain; charset=utf-8')
+            self.end_headers()
+            help_text = """📁 Файловый сервер
+
+Используй эти команды из CMD:
+
+1. Получить список файлов:
+   curl http://IP:8888/list
+
+2. Прочитать файл (показать текст в консоли):
+   curl http://IP:8888/get/имя_файла.txt
+
+3. Скачать файл на компьютер:
+   curl http://IP:8888/download/имя_файла.txt -o файл.txt
+
+Примеры:
+   curl http://192.168.1.247:8888/list
+   curl http://192.168.1.247:8888/get/test.txt
+   curl http://192.168.1.247:8888/download/document.txt -o doc.txt
+"""
+            self.wfile.write(help_text.encode('utf-8'))
+    
+    def send_json(self, data):
+        self.send_response(200)
+        self.send_header('Content-type', 'application/json')
+        self.end_headers()
+        self.wfile.write(json.dumps(data, indent=2, ensure_ascii=False).encode('utf-8'))
+    
+    def log_message(self, format, *args):
+        print(f"[{self.address_string()}] {format % args}")
+
+# Запуск сервера
+print("=" * 50)
+print("📁 Файловый сервер для CMD")
+print("=" * 50)
+print(f"Папка: {os.getcwd()}")
+print(f"Сервер: http://192.168.1.247:{PORT}")
+print("\nКоманды для CMD:")
+print("  curl http://IP:8888/list")
+print("  curl http://IP:8888/get/файл.txt")
+print("  curl http://IP:8888/download/файл.txt -o файл.txt")
+print("=" * 50)
+
+try:
+    with socketserver.TCPServer(("", PORT), CMDHandler) as httpd:
+        print("✅ Сервер запущен. Ctrl+C для остановки")
+        httpd.serve_forever()
+except KeyboardInterrupt:
+    print("\n❌ Сервер остановлен")
+    import http.server
+import socketserver
+import os
+import json
+
+PORT = 8888
+FOLDER = "D:\\code"
+os.chdir(FOLDER)
+
+class CMDHandler(http.server.BaseHTTPRequestHandler):
+    
+    def do_GET(self):
+        path = self.path.strip()
+        
+        # /list - список файлов
+        if path == "/list":
+            files = []
+            for f in os.listdir("."):
+                if os.path.isfile(f):
+                    size = os.path.getsize(f)
+                    files.append({"name": f, "size": size})
+            
+            self.send_json(files)
+        
+        # /get/имя_файла - прочитать файл
+        elif path.startswith("/get/"):
+            filename = path[5:]  # убираем /get/
+            if not filename:
+                self.send_error(400, "Нужно указать имя файла: /get/файл.txt")
+                return
+            
+            if not os.path.exists(filename):
+                self.send_error(404, f"Файл '{filename}' не найден")
+                return
+            
+            try:
+                with open(filename, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                
+                self.send_response(200)
+                self.send_header('Content-type', 'text/plain; charset=utf-8')
+                self.end_headers()
+                self.wfile.write(content.encode('utf-8'))
+            except:
+                self.send_error(500, "Ошибка чтения файла")
+        
+        # /download/имя_файла - скачать файл
+        elif path.startswith("/download/"):
+            filename = path[10:]  # убираем /download/
+            if not filename:
+                self.send_error(400, "Нужно указать имя файла: /download/файл.txt")
+                return
+            
+            if not os.path.exists(filename):
+                self.send_error(404, f"Файл '{filename}' не найден")
+                return
+            
+            try:
+                with open(filename, 'rb') as f:
+                    content = f.read()
+                
+                self.send_response(200)
+                self.send_header('Content-type', 'application/octet-stream')
+                self.send_header('Content-Disposition', f'attachment; filename="{filename}"')
+                self.send_header('Content-Length', str(len(content)))
+                self.end_headers()
+                self.wfile.write(content)
+            except:
+                self.send_error(500, "Ошибка загрузки файла")
+        
+        # / - справка
+        else:
+            self.send_response(200)
+            self.send_header('Content-type', 'text/plain; charset=utf-8')
+            self.end_headers()
+            help_text = """📁 Файловый сервер
+
+Используй эти команды из CMD:
+
+1. Получить список файлов:
+   curl http://IP:8888/list
+
+2. Прочитать файл (показать текст в консоли):
+   curl http://IP:8888/get/имя_файла.txt
+
+3. Скачать файл на компьютер:
+   curl http://IP:8888/download/имя_файла.txt -o файл.txt
+
+Примеры:
+   curl http://192.168.1.247:8888/list
+   curl http://192.168.1.247:8888/get/test.txt
+   curl http://192.168.1.247:8888/download/document.txt -o doc.txt
+"""
+            self.wfile.write(help_text.encode('utf-8'))
+    
+    def send_json(self, data):
+        self.send_response(200)
+        self.send_header('Content-type', 'application/json')
+        self.end_headers()
+        self.wfile.write(json.dumps(data, indent=2, ensure_ascii=False).encode('utf-8'))
+    
+    def log_message(self, format, *args):
+        print(f"[{self.address_string()}] {format % args}")
+
+# Запуск сервера
+print("=" * 50)
+print("📁 Файловый сервер для CMD")
+print("=" * 50)
+print(f"Папка: {os.getcwd()}")
+print(f"Сервер: http://192.168.1.247:{PORT}")
+print("\nКоманды для CMD:")
+print("  curl http://IP:8888/list")
+print("  curl http://IP:8888/get/файл.txt")
+print("  curl http://IP:8888/download/файл.txt -o файл.txt")
+print("=" * 50)
+
+try:
+    with socketserver.TCPServer(("", PORT), CMDHandler) as httpd:
+        print("✅ Сервер запущен. Ctrl+C для остановки")
+        httpd.serve_forever()
+except KeyboardInterrupt:
+    print("\n❌ Сервер остановлен")
+    import http.server
+import socketserver
+import os
+import json
+
+PORT = 8888
+FOLDER = "D:\\code"
+os.chdir(FOLDER)
+
+class CMDHandler(http.server.BaseHTTPRequestHandler):
+    
+    def do_GET(self):
+        path = self.path.strip()
+        
+        # /list - список файлов
+        if path == "/list":
+            files = []
+            for f in os.listdir("."):
+                if os.path.isfile(f):
+                    size = os.path.getsize(f)
+                    files.append({"name": f, "size": size})
+            
+            self.send_json(files)
+        
+        # /get/имя_файла - прочитать файл
+        elif path.startswith("/get/"):
+            filename = path[5:]  # убираем /get/
+            if not filename:
+                self.send_error(400, "Нужно указать имя файла: /get/файл.txt")
+                return
+            
+            if not os.path.exists(filename):
+                self.send_error(404, f"Файл '{filename}' не найден")
+                return
+            
+            try:
+                with open(filename, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                
+                self.send_response(200)
+                self.send_header('Content-type', 'text/plain; charset=utf-8')
+                self.end_headers()
+                self.wfile.write(content.encode('utf-8'))
+            except:
+                self.send_error(500, "Ошибка чтения файла")
+        
+        # /download/имя_файла - скачать файл
+        elif path.startswith("/download/"):
+            filename = path[10:]  # убираем /download/
+            if not filename:
+                self.send_error(400, "Нужно указать имя файла: /download/файл.txt")
+                return
+            
+            if not os.path.exists(filename):
+                self.send_error(404, f"Файл '{filename}' не найден")
+                return
+            
+            try:
+                with open(filename, 'rb') as f:
+                    content = f.read()
+                
+                self.send_response(200)
+                self.send_header('Content-type', 'application/octet-stream')
+                self.send_header('Content-Disposition', f'attachment; filename="{filename}"')
+                self.send_header('Content-Length', str(len(content)))
+                self.end_headers()
+                self.wfile.write(content)
+            except:
+                self.send_error(500, "Ошибка загрузки файла")
+        
+        # / - справка
+        else:
+            self.send_response(200)
+            self.send_header('Content-type', 'text/plain; charset=utf-8')
+            self.end_headers()
+            help_text = """📁 Файловый сервер
+
+Используй эти команды из CMD:
+
+1. Получить список файлов:
+   curl http://IP:8888/list
+
+2. Прочитать файл (показать текст в консоли):
+   curl http://IP:8888/get/имя_файла.txt
+
+3. Скачать файл на компьютер:
+   curl http://IP:8888/download/имя_файла.txt -o файл.txt
+
+Примеры:
+   curl http://192.168.1.247:8888/list
+   curl http://192.168.1.247:8888/get/test.txt
+   curl http://192.168.1.247:8888/download/document.txt -o doc.txt
+"""
+            self.wfile.write(help_text.encode('utf-8'))
+    
+    def send_json(self, data):
+        self.send_response(200)
+        self.send_header('Content-type', 'application/json')
+        self.end_headers()
+        self.wfile.write(json.dumps(data, indent=2, ensure_ascii=False).encode('utf-8'))
+    
+    def log_message(self, format, *args):
+        print(f"[{self.address_string()}] {format % args}")
+
+# Запуск сервера
+print("=" * 50)
+print("📁 Файловый сервер для CMD")
+print("=" * 50)
+print(f"Папка: {os.getcwd()}")
+print(f"Сервер: http://192.168.1.247:{PORT}")
+print("\nКоманды для CMD:")
+print("  curl http://IP:8888/list")
+print("  curl http://IP:8888/get/файл.txt")
+print("  curl http://IP:8888/download/файл.txt -o файл.txt")
+print("=" * 50)
+
+try:
+    with socketserver.TCPServer(("", PORT), CMDHandler) as httpd:
+        print("✅ Сервер запущен. Ctrl+C для остановки")
+        httpd.serve_forever()
+except KeyboardInterrupt:
+    print("\n❌ Сервер остановлен")
+    import http.server
+import socketserver
+import os
+import json
+
+PORT = 8888
+FOLDER = "D:\\code"
+os.chdir(FOLDER)
+
+class CMDHandler(http.server.BaseHTTPRequestHandler):
+    
+    def do_GET(self):
+        path = self.path.strip()
+        
+        # /list - список файлов
+        if path == "/list":
+            files = []
+            for f in os.listdir("."):
+                if os.path.isfile(f):
+                    size = os.path.getsize(f)
+                    files.append({"name": f, "size": size})
+            
+            self.send_json(files)
+        
+        # /get/имя_файла - прочитать файл
+        elif path.startswith("/get/"):
+            filename = path[5:]  # убираем /get/
+            if not filename:
+                self.send_error(400, "Нужно указать имя файла: /get/файл.txt")
+                return
+            
+            if not os.path.exists(filename):
+                self.send_error(404, f"Файл '{filename}' не найден")
+                return
+            
+            try:
+                with open(filename, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                
+                self.send_response(200)
+                self.send_header('Content-type', 'text/plain; charset=utf-8')
+                self.end_headers()
+                self.wfile.write(content.encode('utf-8'))
+            except:
+                self.send_error(500, "Ошибка чтения файла")
+        
+        # /download/имя_файла - скачать файл
+        elif path.startswith("/download/"):
+            filename = path[10:]  # убираем /download/
+            if not filename:
+                self.send_error(400, "Нужно указать имя файла: /download/файл.txt")
+                return
+            
+            if not os.path.exists(filename):
+                self.send_error(404, f"Файл '{filename}' не найден")
+                return
+            
+            try:
+                with open(filename, 'rb') as f:
+                    content = f.read()
+                
+                self.send_response(200)
+                self.send_header('Content-type', 'application/octet-stream')
+                self.send_header('Content-Disposition', f'attachment; filename="{filename}"')
+                self.send_header('Content-Length', str(len(content)))
+                self.end_headers()
+                self.wfile.write(content)
+            except:
+                self.send_error(500, "Ошибка загрузки файла")
+        
+        # / - справка
+        else:
+            self.send_response(200)
+            self.send_header('Content-type', 'text/plain; charset=utf-8')
+            self.end_headers()
+            help_text = """📁 Файловый сервер
+
+Используй эти команды из CMD:
+
+1. Получить список файлов:
+   curl http://IP:8888/list
+
+2. Прочитать файл (показать текст в консоли):
+   curl http://IP:8888/get/имя_файла.txt
+
+3. Скачать файл на компьютер:
+   curl http://IP:8888/download/имя_файла.txt -o файл.txt
+
+Примеры:
+   curl http://192.168.1.247:8888/list
+   curl http://192.168.1.247:8888/get/test.txt
+   curl http://192.168.1.247:8888/download/document.txt -o doc.txt
+"""
+            self.wfile.write(help_text.encode('utf-8'))
+    
+    def send_json(self, data):
+        self.send_response(200)
+        self.send_header('Content-type', 'application/json')
+        self.end_headers()
+        self.wfile.write(json.dumps(data, indent=2, ensure_ascii=False).encode('utf-8'))
+    
+    def log_message(self, format, *args):
+        print(f"[{self.address_string()}] {format % args}")
+
+# Запуск сервера
+print("=" * 50)
+print("📁 Файловый сервер для CMD")
+print("=" * 50)
+print(f"Папка: {os.getcwd()}")
+print(f"Сервер: http://192.168.1.247:{PORT}")
+print("\nКоманды для CMD:")
+print("  curl http://IP:8888/list")
+print("  curl http://IP:8888/get/файл.txt")
+print("  curl http://IP:8888/download/файл.txt -o файл.txt")
+print("=" * 50)
+
+try:
+    with socketserver.TCPServer(("", PORT), CMDHandler) as httpd:
+        print("✅ Сервер запущен. Ctrl+C для остановки")
+        httpd.serve_forever()
+except KeyboardInterrupt:
+    print("\n❌ Сервер остановлен")
+    import http.server
+import socketserver
+import os
+import json
+
+PORT = 8888
+FOLDER = "D:\\code"
+os.chdir(FOLDER)
+
+class CMDHandler(http.server.BaseHTTPRequestHandler):
+    
+    def do_GET(self):
+        path = self.path.strip()
+        
+        # /list - список файлов
+        if path == "/list":
+            files = []
+            for f in os.listdir("."):
+                if os.path.isfile(f):
+                    size = os.path.getsize(f)
+                    files.append({"name": f, "size": size})
+            
+            self.send_json(files)
+        
+        # /get/имя_файла - прочитать файл
+        elif path.startswith("/get/"):
+            filename = path[5:]  # убираем /get/
+            if not filename:
+                self.send_error(400, "Нужно указать имя файла: /get/файл.txt")
+                return
+            
+            if not os.path.exists(filename):
+                self.send_error(404, f"Файл '{filename}' не найден")
+                return
+            
+            try:
+                with open(filename, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                
+                self.send_response(200)
+                self.send_header('Content-type', 'text/plain; charset=utf-8')
+                self.end_headers()
+                self.wfile.write(content.encode('utf-8'))
+            except:
+                self.send_error(500, "Ошибка чтения файла")
+        
+        # /download/имя_файла - скачать файл
+        elif path.startswith("/download/"):
+            filename = path[10:]  # убираем /download/
+            if not filename:
+                self.send_error(400, "Нужно указать имя файла: /download/файл.txt")
+                return
+            
+            if not os.path.exists(filename):
+                self.send_error(404, f"Файл '{filename}' не найден")
+                return
+            
+            try:
+                with open(filename, 'rb') as f:
+                    content = f.read()
+                
+                self.send_response(200)
+                self.send_header('Content-type', 'application/octet-stream')
+                self.send_header('Content-Disposition', f'attachment; filename="{filename}"')
+                self.send_header('Content-Length', str(len(content)))
+                self.end_headers()
+                self.wfile.write(content)
+            except:
+                self.send_error(500, "Ошибка загрузки файла")
+        
+        # / - справка
+        else:
+            self.send_response(200)
+            self.send_header('Content-type', 'text/plain; charset=utf-8')
+            self.end_headers()
+            help_text = """📁 Файловый сервер
+
+Используй эти команды из CMD:
+
+1. Получить список файлов:
+   curl http://IP:8888/list
+
+2. Прочитать файл (показать текст в консоли):
+   curl http://IP:8888/get/имя_файла.txt
+
+3. Скачать файл на компьютер:
+   curl http://IP:8888/download/имя_файла.txt -o файл.txt
+
+Примеры:
+   curl http://192.168.1.247:8888/list
+   curl http://192.168.1.247:8888/get/test.txt
+   curl http://192.168.1.247:8888/download/document.txt -o doc.txt
+"""
+            self.wfile.write(help_text.encode('utf-8'))
+    
+    def send_json(self, data):
+        self.send_response(200)
+        self.send_header('Content-type', 'application/json')
+        self.end_headers()
+        self.wfile.write(json.dumps(data, indent=2, ensure_ascii=False).encode('utf-8'))
+    
+    def log_message(self, format, *args):
+        print(f"[{self.address_string()}] {format % args}")
+
+# Запуск сервера
+print("=" * 50)
+print("📁 Файловый сервер для CMD")
+print("=" * 50)
+print(f"Папка: {os.getcwd()}")
+print(f"Сервер: http://192.168.1.247:{PORT}")
+print("\nКоманды для CMD:")
+print("  curl http://IP:8888/list")
+print("  curl http://IP:8888/get/файл.txt")
+print("  curl http://IP:8888/download/файл.txt -o файл.txt")
+print("=" * 50)
+
+try:
+    with socketserver.TCPServer(("", PORT), CMDHandler) as httpd:
+        print("✅ Сервер запущен. Ctrl+C для остановки")
+        httpd.serve_forever()
+except KeyboardInterrupt:
+    print("\n❌ Сервер остановлен")
+    import http.server
+import socketserver
+import os
+import json
+
+PORT = 8888
+FOLDER = "D:\\code"
+os.chdir(FOLDER)
+
+class CMDHandler(http.server.BaseHTTPRequestHandler):
+    
+    def do_GET(self):
+        path = self.path.strip()
+        
+        # /list - список файлов
+        if path == "/list":
+            files = []
+            for f in os.listdir("."):
+                if os.path.isfile(f):
+                    size = os.path.getsize(f)
+                    files.append({"name": f, "size": size})
+            
+            self.send_json(files)
+        
+        # /get/имя_файла - прочитать файл
+        elif path.startswith("/get/"):
+            filename = path[5:]  # убираем /get/
+            if not filename:
+                self.send_error(400, "Нужно указать имя файла: /get/файл.txt")
+                return
+            
+            if not os.path.exists(filename):
+                self.send_error(404, f"Файл '{filename}' не найден")
+                return
+            
+            try:
+                with open(filename, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                
+                self.send_response(200)
+                self.send_header('Content-type', 'text/plain; charset=utf-8')
+                self.end_headers()
+                self.wfile.write(content.encode('utf-8'))
+            except:
+                self.send_error(500, "Ошибка чтения файла")
+        
+        # /download/имя_файла - скачать файл
+        elif path.startswith("/download/"):
+            filename = path[10:]  # убираем /download/
+            if not filename:
+                self.send_error(400, "Нужно указать имя файла: /download/файл.txt")
+                return
+            
+            if not os.path.exists(filename):
+                self.send_error(404, f"Файл '{filename}' не найден")
+                return
+            
+            try:
+                with open(filename, 'rb') as f:
+                    content = f.read()
+                
+                self.send_response(200)
+                self.send_header('Content-type', 'application/octet-stream')
+                self.send_header('Content-Disposition', f'attachment; filename="{filename}"')
+                self.send_header('Content-Length', str(len(content)))
+                self.end_headers()
+                self.wfile.write(content)
+            except:
+                self.send_error(500, "Ошибка загрузки файла")
+        
+        # / - справка
+        else:
+            self.send_response(200)
+            self.send_header('Content-type', 'text/plain; charset=utf-8')
+            self.end_headers()
+            help_text = """📁 Файловый сервер
+
+Используй эти команды из CMD:
+
+1. Получить список файлов:
+   curl http://IP:8888/list
+
+2. Прочитать файл (показать текст в консоли):
+   curl http://IP:8888/get/имя_файла.txt
+
+3. Скачать файл на компьютер:
+   curl http://IP:8888/download/имя_файла.txt -o файл.txt
+
+Примеры:
+   curl http://192.168.1.247:8888/list
+   curl http://192.168.1.247:8888/get/test.txt
+   curl http://192.168.1.247:8888/download/document.txt -o doc.txt
+"""
+            self.wfile.write(help_text.encode('utf-8'))
+    
+    def send_json(self, data):
+        self.send_response(200)
+        self.send_header('Content-type', 'application/json')
+        self.end_headers()
+        self.wfile.write(json.dumps(data, indent=2, ensure_ascii=False).encode('utf-8'))
+    
+    def log_message(self, format, *args):
+        print(f"[{self.address_string()}] {format % args}")
+
+# Запуск сервера
+print("=" * 50)
+print("📁 Файловый сервер для CMD")
+print("=" * 50)
+print(f"Папка: {os.getcwd()}")
+print(f"Сервер: http://192.168.1.247:{PORT}")
+print("\nКоманды для CMD:")
+print("  curl http://IP:8888/list")
+print("  curl http://IP:8888/get/файл.txt")
+print("  curl http://IP:8888/download/файл.txt -o файл.txt")
+print("=" * 50)
+
+try:
+    with socketserver.TCPServer(("", PORT), CMDHandler) as httpd:
+        print("✅ Сервер запущен. Ctrl+C для остановки")
+        httpd.serve_forever()
+except KeyboardInterrupt:
+    print("\n❌ Сервер остановлен")
+
+    import http.server
+import socketserver
+import os
+import json
+
+PORT = 8888
+FOLDER = "D:\\code"
+os.chdir(FOLDER)
+
+class CMDHandler(http.server.BaseHTTPRequestHandler):
+    
+    def do_GET(self):
+        path = self.path.strip()
+        
+        # /list - список файлов
+        if path == "/list":
+            files = []
+            for f in os.listdir("."):
+                if os.path.isfile(f):
+                    size = os.path.getsize(f)
+                    files.append({"name": f, "size": size})
+            
+            self.send_json(files)
+        
+        # /get/имя_файла - прочитать файл
+        elif path.startswith("/get/"):
+            filename = path[5:]  # убираем /get/
+            if not filename:
+                self.send_error(400, "Нужно указать имя файла: /get/файл.txt")
+                return
+            
+            if not os.path.exists(filename):
+                self.send_error(404, f"Файл '{filename}' не найден")
+                return
+            
+            try:
+                with open(filename, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                
+                self.send_response(200)
+                self.send_header('Content-type', 'text/plain; charset=utf-8')
+                self.end_headers()
+                self.wfile.write(content.encode('utf-8'))
+            except:
+                self.send_error(500, "Ошибка чтения файла")
+        
+        # /download/имя_файла - скачать файл
+        elif path.startswith("/download/"):
+            filename = path[10:]  # убираем /download/
+            if not filename:
+                self.send_error(400, "Нужно указать имя файла: /download/файл.txt")
+                return
+            
+            if not os.path.exists(filename):
+                self.send_error(404, f"Файл '{filename}' не найден")
+                return
+            
+            try:
+                with open(filename, 'rb') as f:
+                    content = f.read()
+                
+                self.send_response(200)
+                self.send_header('Content-type', 'application/octet-stream')
+                self.send_header('Content-Disposition', f'attachment; filename="{filename}"')
+                self.send_header('Content-Length', str(len(content)))
+                self.end_headers()
+                self.wfile.write(content)
+            except:
+                self.send_error(500, "Ошибка загрузки файла")
+        
+        # / - справка
+        else:
+            self.send_response(200)
+            self.send_header('Content-type', 'text/plain; charset=utf-8')
+            self.end_headers()
+            help_text = """📁 Файловый сервер
+
+Используй эти команды из CMD:
+
+1. Получить список файлов:
+   curl http://IP:8888/list
+
+2. Прочитать файл (показать текст в консоли):
+   curl http://IP:8888/get/имя_файла.txt
+
+3. Скачать файл на компьютер:
+   curl http://IP:8888/download/имя_файла.txt -o файл.txt
+
+Примеры:
+   curl http://192.168.1.247:8888/list
+   curl http://192.168.1.247:8888/get/test.txt
+   curl http://192.168.1.247:8888/download/document.txt -o doc.txt
+"""
+            self.wfile.write(help_text.encode('utf-8'))
+    
+    def send_json(self, data):
+        self.send_response(200)
+        self.send_header('Content-type', 'application/json')
+        self.end_headers()
+        self.wfile.write(json.dumps(data, indent=2, ensure_ascii=False).encode('utf-8'))
+    
+    def log_message(self, format, *args):
+        print(f"[{self.address_string()}] {format % args}")
+
+# Запуск сервера
+print("=" * 50)
+print("📁 Файловый сервер для CMD")
+print("=" * 50)
+print(f"Папка: {os.getcwd()}")
+print(f"Сервер: http://192.168.1.247:{PORT}")
+print("\nКоманды для CMD:")
+print("  curl http://IP:8888/list")
+print("  curl http://IP:8888/get/файл.txt")
+print("  curl http://IP:8888/download/файл.txt -o файл.txt")
+print("=" * 50)
+
+try:
+    with socketserver.TCPServer(("", PORT), CMDHandler) as httpd:
+        print("✅ Сервер запущен. Ctrl+C для остановки")
+        httpd.serve_forever()
+except KeyboardInterrupt:
+    print("\n❌ Сервер остановлен")
+    import http.server
+import socketserver
+import os
+import json
+
+PORT = 8888
+FOLDER = "D:\\code"
+os.chdir(FOLDER)
+
+class CMDHandler(http.server.BaseHTTPRequestHandler):
+    
+    def do_GET(self):
+        path = self.path.strip()
+        
+        # /list - список файлов
+        if path == "/list":
+            files = []
+            for f in os.listdir("."):
+                if os.path.isfile(f):
+                    size = os.path.getsize(f)
+                    files.append({"name": f, "size": size})
+            
+            self.send_json(files)
+        
+        # /get/имя_файла - прочитать файл
+        elif path.startswith("/get/"):
+            filename = path[5:]  # убираем /get/
+            if not filename:
+                self.send_error(400, "Нужно указать имя файла: /get/файл.txt")
+                return
+            
+            if not os.path.exists(filename):
+                self.send_error(404, f"Файл '{filename}' не найден")
+                return
+            
+            try:
+                with open(filename, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                
+                self.send_response(200)
+                self.send_header('Content-type', 'text/plain; charset=utf-8')
+                self.end_headers()
+                self.wfile.write(content.encode('utf-8'))
+            except:
+                self.send_error(500, "Ошибка чтения файла")
+        
+        # /download/имя_файла - скачать файл
+        elif path.startswith("/download/"):
+            filename = path[10:]  # убираем /download/
+            if not filename:
+                self.send_error(400, "Нужно указать имя файла: /download/файл.txt")
+                return
+            
+            if not os.path.exists(filename):
+                self.send_error(404, f"Файл '{filename}' не найден")
+                return
+            
+            try:
+                with open(filename, 'rb') as f:
+                    content = f.read()
+                
+                self.send_response(200)
+                self.send_header('Content-type', 'application/octet-stream')
+                self.send_header('Content-Disposition', f'attachment; filename="{filename}"')
+                self.send_header('Content-Length', str(len(content)))
+                self.end_headers()
+                self.wfile.write(content)
+            except:
+                self.send_error(500, "Ошибка загрузки файла")
+        
+        # / - справка
+        else:
+            self.send_response(200)
+            self.send_header('Content-type', 'text/plain; charset=utf-8')
+            self.end_headers()
+            help_text = """📁 Файловый сервер
+
+Используй эти команды из CMD:
+
+1. Получить список файлов:
+   curl http://IP:8888/list
+
+2. Прочитать файл (показать текст в консоли):
+   curl http://IP:8888/get/имя_файла.txt
+
+3. Скачать файл на компьютер:
+   curl http://IP:8888/download/имя_файла.txt -o файл.txt
+
+Примеры:
+   curl http://192.168.1.247:8888/list
+   curl http://192.168.1.247:8888/get/test.txt
+   curl http://192.168.1.247:8888/download/document.txt -o doc.txt
+"""
+            self.wfile.write(help_text.encode('utf-8'))
+    
+    def send_json(self, data):
+        self.send_response(200)
+        self.send_header('Content-type', 'application/json')
+        self.end_headers()
+        self.wfile.write(json.dumps(data, indent=2, ensure_ascii=False).encode('utf-8'))
+    
+    def log_message(self, format, *args):
+        print(f"[{self.address_string()}] {format % args}")
+
+# Запуск сервера
+print("=" * 50)
+print("📁 Файловый сервер для CMD")
+print("=" * 50)
+print(f"Папка: {os.getcwd()}")
+print(f"Сервер: http://192.168.1.247:{PORT}")
+print("\nКоманды для CMD:")
+print("  curl http://IP:8888/list")
+print("  curl http://IP:8888/get/файл.txt")
+print("  curl http://IP:8888/download/файл.txt -o файл.txt")
+print("=" * 50)
+
+try:
+    with socketserver.TCPServer(("", PORT), CMDHandler) as httpd:
+        print("✅ Сервер запущен. Ctrl+C для остановки")
+        httpd.serve_forever()
+except KeyboardInterrupt:
+    print("\n❌ Сервер остановлен")
+    import http.server
+import socketserver
+import os
+import json
+
+PORT = 8888
+FOLDER = "D:\\code"
+os.chdir(FOLDER)
+
+class CMDHandler(http.server.BaseHTTPRequestHandler):
+    
+    def do_GET(self):
+        path = self.path.strip()
+        
+        # /list - список файлов
+        if path == "/list":
+            files = []
+            for f in os.listdir("."):
+                if os.path.isfile(f):
+                    size = os.path.getsize(f)
+                    files.append({"name": f, "size": size})
+            
+            self.send_json(files)
+        
+        # /get/имя_файла - прочитать файл
+        elif path.startswith("/get/"):
+            filename = path[5:]  # убираем /get/
+            if not filename:
+                self.send_error(400, "Нужно указать имя файла: /get/файл.txt")
+                return
+            
+            if not os.path.exists(filename):
+                self.send_error(404, f"Файл '{filename}' не найден")
+                return
+            
+            try:
+                with open(filename, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                
+                self.send_response(200)
+                self.send_header('Content-type', 'text/plain; charset=utf-8')
+                self.end_headers()
+                self.wfile.write(content.encode('utf-8'))
+            except:
+                self.send_error(500, "Ошибка чтения файла")
+        
+        # /download/имя_файла - скачать файл
+        elif path.startswith("/download/"):
+            filename = path[10:]  # убираем /download/
+            if not filename:
+                self.send_error(400, "Нужно указать имя файла: /download/файл.txt")
+                return
+            
+            if not os.path.exists(filename):
+                self.send_error(404, f"Файл '{filename}' не найден")
+                return
+            
+            try:
+                with open(filename, 'rb') as f:
+                    content = f.read()
+                
+                self.send_response(200)
+                self.send_header('Content-type', 'application/octet-stream')
+                self.send_header('Content-Disposition', f'attachment; filename="{filename}"')
+                self.send_header('Content-Length', str(len(content)))
+                self.end_headers()
+                self.wfile.write(content)
+            except:
+                self.send_error(500, "Ошибка загрузки файла")
+        
+        # / - справка
+        else:
+            self.send_response(200)
+            self.send_header('Content-type', 'text/plain; charset=utf-8')
+            self.end_headers()
+            help_text = """📁 Файловый сервер
+
+Используй эти команды из CMD:
+
+1. Получить список файлов:
+   curl http://IP:8888/list
+
+2. Прочитать файл (показать текст в консоли):
+   curl http://IP:8888/get/имя_файла.txt
+
+3. Скачать файл на компьютер:
+   curl http://IP:8888/download/имя_файла.txt -o файл.txt
+
+Примеры:
+   curl http://192.168.1.247:8888/list
+   curl http://192.168.1.247:8888/get/test.txt
+   curl http://192.168.1.247:8888/download/document.txt -o doc.txt
+"""
+            self.wfile.write(help_text.encode('utf-8'))
+    
+    def send_json(self, data):
+        self.send_response(200)
+        self.send_header('Content-type', 'application/json')
+        self.end_headers()
+        self.wfile.write(json.dumps(data, indent=2, ensure_ascii=False).encode('utf-8'))
+    
+    def log_message(self, format, *args):
+        print(f"[{self.address_string()}] {format % args}")
+
+# Запуск сервера
+print("=" * 50)
+print("📁 Файловый сервер для CMD")
+print("=" * 50)
+print(f"Папка: {os.getcwd()}")
+print(f"Сервер: http://192.168.1.247:{PORT}")
+print("\nКоманды для CMD:")
+print("  curl http://IP:8888/list")
+print("  curl http://IP:8888/get/файл.txt")
+print("  curl http://IP:8888/download/файл.txt -o файл.txt")
+print("=" * 50)
+
+try:
+    with socketserver.TCPServer(("", PORT), CMDHandler) as httpd:
+        print("✅ Сервер запущен. Ctrl+C для остановки")
+        httpd.serve_forever()
+except KeyboardInterrupt:
+    print("\n❌ Сервер остановлен")
+    import http.server
+import socketserver
+import os
+import json
+
+PORT = 8888
+FOLDER = "D:\\code"
+os.chdir(FOLDER)
+
+class CMDHandler(http.server.BaseHTTPRequestHandler):
+    
+    def do_GET(self):
+        path = self.path.strip()
+        
+        # /list - список файлов
+        if path == "/list":
+            files = []
+            for f in os.listdir("."):
+                if os.path.isfile(f):
+                    size = os.path.getsize(f)
+                    files.append({"name": f, "size": size})
+            
+            self.send_json(files)
+        
+        # /get/имя_файла - прочитать файл
+        elif path.startswith("/get/"):
+            filename = path[5:]  # убираем /get/
+            if not filename:
+                self.send_error(400, "Нужно указать имя файла: /get/файл.txt")
+                return
+            
+            if not os.path.exists(filename):
+                self.send_error(404, f"Файл '{filename}' не найден")
+                return
+            
+            try:
+                with open(filename, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                
+                self.send_response(200)
+                self.send_header('Content-type', 'text/plain; charset=utf-8')
+                self.end_headers()
+                self.wfile.write(content.encode('utf-8'))
+            except:
+                self.send_error(500, "Ошибка чтения файла")
+        
+        # /download/имя_файла - скачать файл
+        elif path.startswith("/download/"):
+            filename = path[10:]  # убираем /download/
+            if not filename:
+                self.send_error(400, "Нужно указать имя файла: /download/файл.txt")
+                return
+            
+            if not os.path.exists(filename):
+                self.send_error(404, f"Файл '{filename}' не найден")
+                return
+            
+            try:
+                with open(filename, 'rb') as f:
+                    content = f.read()
+                
+                self.send_response(200)
+                self.send_header('Content-type', 'application/octet-stream')
+                self.send_header('Content-Disposition', f'attachment; filename="{filename}"')
+                self.send_header('Content-Length', str(len(content)))
+                self.end_headers()
+                self.wfile.write(content)
+            except:
+                self.send_error(500, "Ошибка загрузки файла")
+        
+        # / - справка
+        else:
+            self.send_response(200)
+            self.send_header('Content-type', 'text/plain; charset=utf-8')
+            self.end_headers()
+            help_text = """📁 Файловый сервер
+
+Используй эти команды из CMD:
+
+1. Получить список файлов:
+   curl http://IP:8888/list
+
+2. Прочитать файл (показать текст в консоли):
+   curl http://IP:8888/get/имя_файла.txt
+
+3. Скачать файл на компьютер:
+   curl http://IP:8888/download/имя_файла.txt -o файл.txt
+
+Примеры:
+   curl http://192.168.1.247:8888/list
+   curl http://192.168.1.247:8888/get/test.txt
+   curl http://192.168.1.247:8888/download/document.txt -o doc.txt
+"""
+            self.wfile.write(help_text.encode('utf-8'))
+    
+    def send_json(self, data):
+        self.send_response(200)
+        self.send_header('Content-type', 'application/json')
+        self.end_headers()
+        self.wfile.write(json.dumps(data, indent=2, ensure_ascii=False).encode('utf-8'))
+    
+    def log_message(self, format, *args):
+        print(f"[{self.address_string()}] {format % args}")
+
+# Запуск сервера
+print("=" * 50)
+print("📁 Файловый сервер для CMD")
+print("=" * 50)
+print(f"Папка: {os.getcwd()}")
+print(f"Сервер: http://192.168.1.247:{PORT}")
+print("\nКоманды для CMD:")
+print("  curl http://IP:8888/list")
+print("  curl http://IP:8888/get/файл.txt")
+print("  curl http://IP:8888/download/файл.txt -o файл.txt")
+print("=" * 50)
+
+try:
+    with socketserver.TCPServer(("", PORT), CMDHandler) as httpd:
+        print("✅ Сервер запущен. Ctrl+C для остановки")
+        httpd.serve_forever()
+except KeyboardInterrupt:
+    print("\n❌ Сервер остановлен")
+
+    dwadawdawda
+
+
+
+Эмин лох лан шучу
