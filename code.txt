@@ -1,0 +1,486 @@
+code
+
+
+Зависимость
+
+implementation("com.google.code.gson:gson:2.10.1")
+
+
+users.json
+[
+  {
+    "login": "povar",
+    "password": "123",
+    "role": "cook"
+  },
+  {
+    "login": "waiter",
+    "password": "123",
+    "role": "waiter"
+  }
+]
+
+/loginactivity
+
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Авторизация"
+        android:textSize="20sp"
+        android:layout_marginBottom="24dp"/>
+
+    <EditText
+        android:id="@+id/etLogin"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Логин"
+        android:minHeight="48dp" />
+
+    <EditText
+        android:id="@+id/etPassword"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Пароль"
+        android:inputType="textPassword"
+        android:minHeight="48dp" />
+
+    <Button
+        android:id="@+id/btnLogin"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Войти"
+        android:layout_marginTop="16dp"/>
+</LinearLayout>
+
+/LoginActivity
+
+package com.example.restorenew
+
+import android.content.Intent
+import android.os.Bundle
+import android.widget.Button
+import android.widget.EditText
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+
+class LoginActivity : AppCompatActivity() {
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main) // используем activity_main.xml
+
+        val etLogin: EditText = findViewById(R.id.etLogin)
+        val etPassword: EditText = findViewById(R.id.etPassword)
+        val btnLogin: Button = findViewById(R.id.btnLogin)
+
+        btnLogin.setOnClickListener {
+            val login = etLogin.text.toString()
+            val password = etPassword.text.toString()
+
+            if (login.isEmpty() || password.isEmpty()) {
+                showToast("Введите логин и пароль")
+                return@setOnClickListener
+            }
+
+            val users = loadUsersFromJson()
+            val foundUser = users.find { it.login == login && it.password == password }
+
+            if (foundUser == null) {
+                showToast("Неверный логин или пароль")
+                return@setOnClickListener
+            }
+            when (foundUser.role) {
+                "cook" -> {
+                    startActivity(Intent(this, CookActivity::class.java))
+                    finish()
+                }
+                "waiter" ->
+                {
+                    showToast("Роль официант пока в разработке")
+                }
+            }
+        }
+    }
+
+    private fun loadUsersFromJson(): List<User> {
+        val jsonString = assets.open("users.json").bufferedReader().use { it.readText() }
+        val typeToken = object : TypeToken<List<User>>() {}.type
+        return Gson().fromJson(jsonString, typeToken)
+    }
+
+    private fun showToast(message: String) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+    }
+}
+
+dishes.json
+
+[
+  {
+    "id": 1,
+    "name": "Борщ",
+    "description": "Красный суп со свеклой",
+    "price": 350.0,
+    "category": "Супы",
+    "cookTime": 30
+  }
+]
+
+/item_dish
+
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:padding="12dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="#EEEEEE"
+    android:layout_marginBottom="8dp">
+
+    <TextView
+        android:id="@+id/tvDishName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Название"
+        android:textSize="16sp"
+        android:textStyle="bold"/>
+
+    <TextView
+        android:id="@+id/tvDishInfo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Описание / цена / время"
+        android:textSize="14sp"
+        android:layout_marginTop="4dp"/>
+</LinearLayout>
+
+// Классы
+
+package com.example.restorenew
+
+data class Dish(
+    val id: Int,
+    val name: String,
+    val description: String,
+    val price: Double,
+    val category: String,
+    val cookTime: Int
+)
+
+
+
+package com.example.restorenew
+
+data class User(
+    val login: String,
+    val password: String,
+    val role: String
+)
+
+//activity cook
+
+
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Повар"
+            android:textSize="20sp"
+            android:layout_marginBottom="20dp"/>
+
+        <Button
+            android:id="@+id/btnBackFromCook"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Назад"
+            android:layout_marginBottom="20dp"/>
+
+        <EditText
+            android:id="@+id/etDishName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Название блюда" />
+
+        <EditText
+            android:id="@+id/etDishDescription"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Описание" />
+
+        <EditText
+            android:id="@+id/etDishPrice"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Цена"
+            android:inputType="numberDecimal" />
+
+        <EditText
+            android:id="@+id/etDishCategory"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Категория" />
+
+        <EditText
+            android:id="@+id/etDishCookTime"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Время приготовления (мин)"
+            android:inputType="number" />
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp">
+
+            <Button
+                android:id="@+id/btnAddDish"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Добавить" />
+
+            <Button
+                android:id="@+id/btnUpdateDish"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Изменить" />
+
+            <Button
+                android:id="@+id/btnDeleteDish"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Удалить" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Меню:"
+            android:textSize="16sp"
+            android:layout_marginTop="24dp"/>
+
+        <LinearLayout
+            android:id="@+id/linerLayoutMenu"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"/>
+    </LinearLayout>
+</ScrollView>
+
+// CookActivity
+
+
+
+package com.example.restorenew
+
+import android.content.Intent
+import android.os.Bundle
+import android.widget.*
+import androidx.appcompat.app.AppCompatActivity
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+import java.io.File
+
+class CookActivity : AppCompatActivity() {
+
+    private lateinit var etDishName: EditText
+    private lateinit var etDishDescription: EditText
+    private lateinit var etDishPrice: EditText
+    private lateinit var etDishCategory: EditText
+    private lateinit var etDishCookTime: EditText
+
+    private lateinit var btnAddDish: Button
+    private lateinit var btnUpdateDish: Button
+    private lateinit var btnDeleteDish: Button
+    private lateinit var btnBackFromCook: Button
+
+    private lateinit var linerLayoutMenu: LinearLayout
+
+    private var selectedDishIndex = -1
+    private val dishesFile = "dishes.json"
+    private var dishList = mutableListOf<Dish>()
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_cook)
+
+        initViews()
+        loadDishesFromFile()
+        setupClickListeners()
+        updateMenuView()
+    }
+
+    private fun initViews() {
+        etDishName = findViewById(R.id.etDishName)
+        etDishDescription = findViewById(R.id.etDishDescription)
+        etDishPrice = findViewById(R.id.etDishPrice)
+        etDishCategory = findViewById(R.id.etDishCategory)
+        etDishCookTime = findViewById(R.id.etDishCookTime)
+
+        btnAddDish = findViewById(R.id.btnAddDish)
+        btnUpdateDish = findViewById(R.id.btnUpdateDish)
+        btnDeleteDish = findViewById(R.id.btnDeleteDish)
+        btnBackFromCook = findViewById(R.id.btnBackFromCook)
+
+        linerLayoutMenu = findViewById(R.id.linerLayoutMenu)
+    }
+
+    private fun setupClickListeners() {
+        btnAddDish.setOnClickListener { addDish() }
+        btnUpdateDish.setOnClickListener { updateDish() }
+        btnDeleteDish.setOnClickListener { deleteDish() }
+        btnBackFromCook.setOnClickListener { startActivity(Intent(this, LoginActivity::class.java))
+            finish() }
+    }
+
+    private fun loadDishesFromFile() {
+        val file = File(filesDir, dishesFile)
+        if (!file.exists()) {
+            val jsonString = assets.open("dishes.json").bufferedReader().use { it.readText() }
+            file.writeText(jsonString)
+        }
+
+        val jsonString = file.readText()
+        val typeToken = object : TypeToken<List<Dish>>() {}.type
+        dishList = Gson().fromJson(jsonString, typeToken)
+    }
+
+    private fun saveDishesToFile() {
+        val jsonString = Gson().toJson(dishList)
+        File(filesDir, dishesFile).writeText(jsonString)
+    }
+
+    private fun addDish() {
+        val name = etDishName.text.toString()
+        val description = etDishDescription.text.toString()
+        val price = etDishPrice.text.toString().toDoubleOrNull()
+        val category = etDishCategory.text.toString()
+        val cookTime = etDishCookTime.text.toString().toIntOrNull()
+
+        if (name.isEmpty() || price == null || cookTime == null) {
+            showToast("Заполните все поля правильно")
+            return
+        }
+
+        val newId = if (dishList.isNotEmpty()) dishList.maxOf { it.id } + 1 else 1
+        val newDish = Dish(newId, name, description, price, category, cookTime)
+
+        dishList.add(newDish)
+        saveDishesToFile()
+        updateMenuView()
+        clearFields()
+        showToast("Блюдо добавлено")
+    }
+
+    private fun updateDish() {
+        if (selectedDishIndex == -1) {
+            showToast("Выберите блюдо для редактирования")
+            return
+        }
+
+        val name = etDishName.text.toString()
+        val description = etDishDescription.text.toString()
+        val price = etDishPrice.text.toString().toDoubleOrNull()
+        val category = etDishCategory.text.toString()
+        val cookTime = etDishCookTime.text.toString().toIntOrNull()
+
+        if (name.isEmpty() || price == null || cookTime == null) {
+            showToast("Заполните все поля правильно")
+            return
+        }
+
+        dishList[selectedDishIndex] = dishList[selectedDishIndex].copy(
+            name = name,
+            description = description,
+            price = price,
+            category = category,
+            cookTime = cookTime
+        )
+
+        saveDishesToFile()
+        updateMenuView()
+        clearFields()
+        showToast("Блюдо обновлено")
+    }
+
+    private fun deleteDish() {
+        if (selectedDishIndex == -1) {
+            showToast("Выберите блюдо для удаления")
+            return
+        }
+
+        dishList.removeAt(selectedDishIndex)
+        saveDishesToFile()
+        updateMenuView()
+        clearFields()
+        showToast("Блюдо удалено")
+    }
+
+    private fun updateMenuView() {
+        linerLayoutMenu.removeAllViews()
+
+        for ((index, dish) in dishList.withIndex()) {
+            val dishView = layoutInflater.inflate(R.layout.item_dish, null)
+
+            val nameText = dishView.findViewById<TextView>(R.id.tvDishName)
+            val infoText = dishView.findViewById<TextView>(R.id.tvDishInfo)
+
+            nameText.text = dish.name
+            infoText.text = "${dish.description} | ${dish.price}₽ | ${dish.cookTime} мин"
+
+            dishView.setOnClickListener {
+                selectedDishIndex = index
+                etDishName.setText(dish.name)
+                etDishDescription.setText(dish.description)
+                etDishPrice.setText(dish.price.toString())
+                etDishCategory.setText(dish.category)
+                etDishCookTime.setText(dish.cookTime.toString())
+                showToast("Выбрано: ${dish.name}")
+            }
+
+            linerLayoutMenu.addView(dishView)
+        }
+    }
+
+    private fun clearFields() {
+        etDishName.text.clear()
+        etDishDescription.text.clear()
+        etDishPrice.text.clear()
+        etDishCategory.text.clear()
+        etDishCookTime.text.clear()
+        selectedDishIndex = -1
+    }
+
+    private fun showToast(message: String) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+    }
+}
+
+
+
+
+
+
