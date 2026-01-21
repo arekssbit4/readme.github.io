@@ -1,0 +1,281 @@
+CONTROLLERS
+
+
+AllControllers
+
+using Ekzgotovo.Models;
+using Ekzgotovo.Services;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
+
+namespace Ekzgotovo.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    public class UserController : Controller
+    {
+        private readonly JsonDataService _dataService = new();
+
+        [HttpGet]
+        public IActionResult GetAll() => Ok(_dataService.GetAllUsers());
+
+        [HttpGet("{id}")]
+        public IActionResult GetById(int id)
+        {
+            var user = _dataService.GetUserById(id);
+            return user != null ? Ok(user) : NotFound();
+        }
+
+        [HttpPost]
+        public IActionResult Create([FromBody] User user)
+        {
+            _dataService.AddUser(user);
+            return Ok(new { message = "Создано", id = user.Id });
+        }
+
+        [HttpPut("{id}")]
+        public IActionResult Update(int id, [FromBody] User updatedUser)
+        {
+            var user = _dataService.GetUserById(id);
+            if (user == null) return NotFound();
+
+            _dataService.UpdateUser(id, updatedUser);
+            return Ok(new { message = "Обновлено" });
+        }
+
+        [HttpDelete("{id}")]
+        public IActionResult Delete(int id)
+        {
+            var user = _dataService.GetUserById(id);
+            if (user == null) return NotFound();
+
+            _dataService.DeleteUser(id);
+            return Ok(new { message = "Удалено" });
+        }
+
+        [HttpGet("download")]
+        public IActionResult DownloadJson()
+        {
+            if (!System.IO.File.Exists("users.json"))
+            {
+                return NotFound("Файл не найден");
+            }
+
+            byte[] fileBytes = System.IO.File.ReadAllBytes("users.json");
+            return File(fileBytes, "application/json", "users_data.json");
+        }
+    }
+
+    [ApiController]
+    [Route("api/[controller]")]
+    public class AuthController : Controller
+    {
+        private readonly JsonDataService _dataService = new();
+
+        [HttpPost("login")]
+        public IActionResult Login([FromBody] LoginRequest request)
+        {
+            if (_dataService.ValidateUser(request.Login, request.Password))
+            {
+                return Ok(new
+                {
+                    success = true,
+                    token = "fake-jwt-token-12345",
+                    message = "Успешная авторизация"
+                });
+            }
+            return Unauthorized(new { success = false, message = "Неверный логин или пароль" });
+        }
+    }
+}
+
+
+
+
+
+
+
+
+MODELS
+
+AllModels
+
+
+
+
+namespace Ekzgotovo.Models
+{
+    public class User
+    {
+        public int Id { get; set; }
+        public string Login { get; set; }
+        public string Password { get; set; }
+    }
+
+    public class LoginRequest
+    {
+        public string Login { get; set; }
+        public string Password { get; set; }
+    }
+}
+
+
+
+
+
+
+
+Services
+
+JsonDataServices
+
+
+
+
+
+
+using System.Text.Json;
+using Ekzgotovo.Models;
+
+namespace Ekzgotovo.Services
+{
+    public class JsonDataService
+    {
+        private static readonly string JsonFilePath = "users.json";
+        private static List<User> _users = new();
+
+        public JsonDataService()
+        {
+            LoadFromJsonFile();
+        }
+
+        public bool ValidateUser(string login, string password)
+        {
+            return _users.Any(u => u.Login == login && u.Password == password);
+        }
+
+        public List<User> GetAllUsers() => _users;
+
+        public User GetUserById(int id) => _users.FirstOrDefault(u => u.Id == id);
+
+        public void AddUser(User user)
+        {
+            int newId = _users.Count > 0 ? _users.Max(u => u.Id) + 1 : 1;
+            user.Id = newId;
+            _users.Add(user);
+            SaveToJsonFile();
+        }
+
+        public void UpdateUser(int id, User updatedUser)
+        {
+            var user = _users.FirstOrDefault(u => u.Id == id);
+            if (user != null)
+            {
+                user.Login = updatedUser.Login;
+                user.Password = updatedUser.Password;
+                SaveToJsonFile();
+            }
+        }
+
+        public void DeleteUser(int id)
+        {
+            var user = _users.FirstOrDefault(u => u.Id == id);
+            if (user != null)
+            {
+                _users.Remove(user);
+                SaveToJsonFile();
+            }
+        }
+
+        private void LoadFromJsonFile()
+        {
+            if (File.Exists(JsonFilePath))
+            {
+                string json = File.ReadAllText(JsonFilePath);
+                _users = JsonSerializer.Deserialize<List<User>>(json) ?? new List<User>();
+            }
+            else
+            {
+                _users = new List<User>
+                {
+                    new User { Id = 1, Login = "admin", Password = "123" }
+                };
+                SaveToJsonFile();
+            }
+        }
+
+        private void SaveToJsonFile()
+        {
+            string json = JsonSerializer.Serialize(_users, new JsonSerializerOptions
+            {
+                WriteIndented = true
+            });
+            File.WriteAllText(JsonFilePath, json);
+        }
+    }
+}
+
+
+
+
+
+
+WPFekz
+
+
+XMAL
+
+<Window x:Class="WPFekz.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Авторизация" Height="200" Width="300">
+    <StackPanel Margin="20">
+        <TextBox x:Name="LoginBox" Margin="0,0,0,10"/>
+        <TextBox x:Name="PassBox" Margin="0,0,0,10"/>
+        <Button Click="Login_Click" Content="Войти"/>
+        <TextBlock x:Name="ResultText" Margin="0,10,0,0"/>
+    </StackPanel>
+</Window>
+
+
+
+
+using System;
+using System.Net.Http;
+using System.Windows;
+
+namespace WPFekz
+{
+    public partial class MainWindow : Window
+    {
+        public MainWindow()
+        {
+            InitializeComponent();
+        }
+
+        private async void Login_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var client = new HttpClient();
+                var json = $"{{\"login\":\"{LoginBox.Text}\",\"password\":\"{PassBox.Text}\"}}";
+                var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+
+                var response = await client.PostAsync("http://localhost:5016/api/auth/login", content);
+
+                ResultText.Text = response.IsSuccessStatusCode ? "Успех" : "Ошибка";
+            }
+            catch
+            {
+                ResultText.Text = "Ошибка подключения";
+            }
+        }
+    }
+}
+
+
+
+
+
+
+
