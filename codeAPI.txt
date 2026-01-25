@@ -14,27 +14,27 @@ namespace Ekzgotovo.Controllers
     [Route("api/[controller]")]
     public class UserController : Controller
     {
-        private readonly JsonDataService _dataService = new();
+        private readonly JsonDataService _dataService = new(); ПЕРВЫЙ
 
         [HttpGet]
-        public IActionResult GetAll() => Ok(_dataService.GetAllUsers());
+        public IActionResult GetAll() => Ok(_dataService.GetAllUsers());      ПЕРВЫЙ
 
         [HttpGet("{id}")]
         public IActionResult GetById(int id)
         {
             var user = _dataService.GetUserById(id);
-            return user != null ? Ok(user) : NotFound();
+            return user != null ? Ok(user) : NotFound();       ПЕРВЫЙ
         }
 
         [HttpPost]
         public IActionResult Create([FromBody] User user)
         {
             _dataService.AddUser(user);
-            return Ok(new { message = "Создано", id = user.Id });
+            return Ok(new { message = "Создано", id = user.Id });    ВТОРОЙ
         }
 
         [HttpPut("{id}")]
-        public IActionResult Update(int id, [FromBody] User updatedUser)
+        public IActionResult Update(int id, [FromBody] User updatedUser)     ВТОРОЙ
         {
             var user = _dataService.GetUserById(id);
             if (user == null) return NotFound();
@@ -46,7 +46,7 @@ namespace Ekzgotovo.Controllers
         [HttpDelete("{id}")]
         public IActionResult Delete(int id)
         {
-            var user = _dataService.GetUserById(id);
+            var user = _dataService.GetUserById(id);   ТРЕТИЙ
             if (user == null) return NotFound();
 
             _dataService.DeleteUser(id);
@@ -61,7 +61,7 @@ namespace Ekzgotovo.Controllers
                 return NotFound("Файл не найден");
             }
 
-            byte[] fileBytes = System.IO.File.ReadAllBytes("users.json");
+            byte[] fileBytes = System.IO.File.ReadAllBytes("users.json");     ТРЕТИЙ
             return File(fileBytes, "application/json", "users_data.json");
         }
     }
@@ -70,18 +70,18 @@ namespace Ekzgotovo.Controllers
     [Route("api/[controller]")]
     public class AuthController : Controller
     {
-        private readonly JsonDataService _dataService = new();
+        private readonly JsonDataService _dataService = new();    ЧЕТВЕРТЫЙ
 
         [HttpPost("login")]
         public IActionResult Login([FromBody] LoginRequest request)
         {
-            if (_dataService.ValidateUser(request.Login, request.Password))
+            if (_dataService.ValidateUser(request.Login, request.Password))      ЧЕТВЕРТЫЙ
             {
                 return Ok(new
                 {
-                    success = true,
-                    token = "fake-jwt-token-12345",
-                    message = "Успешная авторизация"
+                    success = true,    ЧЕТВЕРТЫЙ
+                    token = "fake-jwt-token-12345",    ЧЕТВЕРТЫЙ
+                    message = "Успешная авторизация"   ЧЕТВЕРТЫЙ
                 });
             }
             return Unauthorized(new { success = false, message = "Неверный логин или пароль" });
@@ -100,19 +100,16 @@ MODELS
 
 AllModels
 
-
-
-
 namespace Ekzgotovo.Models
 {
     public class User
     {
         public int Id { get; set; }
         public string Login { get; set; }
-        public string Password { get; set; }
+        public string Password { get; set; } 
     }
 
-    public class LoginRequest
+    public class LoginRequest    
     {
         public string Login { get; set; }
         public string Password { get; set; }
@@ -141,7 +138,7 @@ namespace Ekzgotovo.Services
 {
     public class JsonDataService
     {
-        private static readonly string JsonFilePath = "users.json";
+        private static readonly string JsonFilePath = "users.json";      ПЕРВЫЙ
         private static List<User> _users = new();
 
         public JsonDataService()
@@ -156,14 +153,14 @@ namespace Ekzgotovo.Services
 
         public List<User> GetAllUsers() => _users;
 
-        public User GetUserById(int id) => _users.FirstOrDefault(u => u.Id == id);
+        public User GetUserById(int id) => _users.FirstOrDefault(u => u.Id == id); 
 
         public void AddUser(User user)
         {
             int newId = _users.Count > 0 ? _users.Max(u => u.Id) + 1 : 1;
             user.Id = newId;
             _users.Add(user);
-            SaveToJsonFile();
+            SaveToJsonFile();                               ПЕРВЫЙ
         }
 
         public void UpdateUser(int id, User updatedUser)
@@ -172,7 +169,7 @@ namespace Ekzgotovo.Services
             if (user != null)
             {
                 user.Login = updatedUser.Login;
-                user.Password = updatedUser.Password;
+                user.Password = updatedUser.Password;          ВТОРОЙ
                 SaveToJsonFile();
             }
         }
@@ -183,7 +180,7 @@ namespace Ekzgotovo.Services
             if (user != null)
             {
                 _users.Remove(user);
-                SaveToJsonFile();
+                SaveToJsonFile();                     ВТОРОЙ
             }
         }
 
@@ -191,8 +188,8 @@ namespace Ekzgotovo.Services
         {
             if (File.Exists(JsonFilePath))
             {
-                string json = File.ReadAllText(JsonFilePath);
-                _users = JsonSerializer.Deserialize<List<User>>(json) ?? new List<User>();
+                string json = File.ReadAllText(JsonFilePath); 
+                _users = JsonSerializer.Deserialize<List<User>>(json) ?? new List<User>();              ТРЕТИЙ   
             }
             else
             {
@@ -206,7 +203,7 @@ namespace Ekzgotovo.Services
 
         private void SaveToJsonFile()
         {
-            string json = JsonSerializer.Serialize(_users, new JsonSerializerOptions
+            string json = JsonSerializer.Serialize(_users, new JsonSerializerOptions              ТРЕТИЙ
             {
                 WriteIndented = true
             });
@@ -230,7 +227,7 @@ XMAL
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Авторизация" Height="200" Width="300">
     <StackPanel Margin="20">
-        <TextBox x:Name="LoginBox" Margin="0,0,0,10"/>
+        <TextBox x:Name="LoginBox" Margin="0,0,0,10"/>               ПЕРВЫЙ
         <TextBox x:Name="PassBox" Margin="0,0,0,10"/>
         <Button Click="Login_Click" Content="Войти"/>
         <TextBlock x:Name="ResultText" Margin="0,10,0,0"/>
@@ -258,7 +255,7 @@ namespace WPFekz
             try
             {
                 var client = new HttpClient();
-                var json = $"{{\"login\":\"{LoginBox.Text}\",\"password\":\"{PassBox.Text}\"}}";
+                var json = $"{{\"login\":\"{LoginBox.Text}\",\"password\":\"{PassBox.Text}\"}}";           ВТОРОЙ
                 var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
 
                 var response = await client.PostAsync("http://localhost:5016/api/auth/login", content);
@@ -272,6 +269,7 @@ namespace WPFekz
         }
     }
 }
+
 
 
 
